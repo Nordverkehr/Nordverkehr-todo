@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Todo Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#fef2f2',
+                            100: '#fee2e2',
+                            200: '#fecaca',
+                            300: '#fca5a5',
+                            400: '#f87171',
+                            500: '#ef4444',
+                            600: '#dc2626',
+                            700: '#b91c1c',
+                            800: '#991b1b',
+                            900: '#7f1d1d',
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-up': 'slideUp 0.3s ease-out',
+                        'pulse-soft': 'pulseSoft 2s infinite',
+                        'bounce-soft': 'bounceSoft 1s infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulseSoft {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        @keyframes bounceSoft {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        /* Pure black background with subtle texture */
+        body {
+            background: #000000;
+            background-image: 
+                radial-gradient(circle at 25% 25%, #1a0000 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, #0a0000 0%, transparent 50%);
+            min-height: 100vh;
+        }
+        
+        /* Black glass cards with red accents */
+        .glass-card {
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(220, 38, 38, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(220, 38, 38, 0.1);
+        }
+        
+        .glass-input {
+            background: rgba(20, 20, 20, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+        }
+        
+        .glass-input:focus {
+            background: rgba(30, 30, 30, 0.95);
+            border-color: rgba(220, 38, 38, 0.6);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
+        }
+        
+        /* Red gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f87171 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .status-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        /* Custom scrollbar for black theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #000000;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #dc2626;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ef4444;
+        }
+    </style>
+</head>
+<body class="min-h-screen transition-all duration-500">
+    <!-- Main Container -->
+    <div class="min-h-screen p-4 md:p-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl md:text-6xl font-bold mb-4 gradient-text">
+                Shopping Todo Dashboard
+            </h1>
+            <p class="text-lg text-gray-400">
+                Verwalte deine Einkaufsliste mit Stil
+            </p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Gesamt Items -->
+            <div class="glass-card rounded-2xl p-6 text-center">
+                <h3 class="text-lg font-semibold text-gray-300 mb-2">Gesamt Items</h3>
+                <p id="total-count" class="text-3xl font-bold text-white">0</p>
+            </div>
+            
+            <!-- Gekauft -->
+            <div class="glass-card rounded-2xl p-6 text-center">
+                <h3 class="text-lg font-semibold text-gray-300 mb-2">Gekauft</h3>
+                <p id="purchased-count" class="text-3xl font-bold text-red-400">0</p>
+            </div>
+            
+            <!-- Offen -->
+            <div class="glass-card rounded-2xl p-6 text-center">
+                <h3 class="text-lg font-semibold text-gray-300 mb-2">Offen</h3>
+                <p id="unpurchased-count" class="text-3xl font-bold text-gray-500">0</p>
+            </div>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="glass-card rounded-2xl p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <!-- Search -->
+                <div class="relative">
+                    <input type="text" id="search-input" placeholder="Suchen..." 
+                        class="w-full px-4 py-3 pl-10 rounded-xl glass-input text-white placeholder-gray-500">
+                    <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+                
+                <!-- Price Filter -->
+                <select id="price-filter" class="px-4 py-3 rounded-xl glass-input text-white">
+                    <option value="all">Alle Preise</option>
+                    <option value="low">Unter 50€</option>
+                    <option value="medium">50€ - 200€</option>
+                    <option value="high">Über 200€</option>
+                </select>
+                
+                <!-- Sort -->
+                <select id="sort-filter" class="px-4 py-3 rounded-xl glass-input text-white">
+                    <option value="newest">Neueste zuerst</option>
+                    <option value="oldest">Älteste zuerst</option>
+                    <option value="price-low">Preis aufsteigend</option>
+                    <option value="price-high">Preis absteigend</option>
+                </select>
+            </div>
+            
+            <!-- Filter Buttons -->
+            <div class="flex flex-wrap gap-3">
+                <button id="filter-all" class="filter-btn active px-4 py-2 rounded-xl bg-red-600/30 text-red-300 font-medium hover:bg-red-600/50 transition-all border border-red-600/50">
+                    <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                    </svg>
+                    Alle
+                </button>
+                <button id="filter-purchased" class="filter-btn px-4 py-2 rounded-xl bg-gray-800/50 text-gray-400 font-medium hover:bg-red-600/30 hover:text-red-300 transition-all border border-gray-700">
+                    <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Gekauft
+                </button>
+                <button id="filter-unpurchased" class="filter-btn px-4 py-2 rounded-xl bg-gray-800/50 text-gray-400 font-medium hover:bg-red-600/30 hover:text-red-300 transition-all border border-gray-700">
+                    <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Nicht gekauft
+                </button>
+                <button id="filter-mlo" class="filter-btn px-4 py-2 rounded-xl bg-gray-800/50 text-gray-400 font-medium hover:bg-red-600/30 hover:text-red-300 transition-all border border-gray-700">
+                    <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                    MLO
+                </button>
+                <button id="filter-script" class="filter-btn px-4 py-2 rounded-xl bg-gray-800/50 text-gray-400 font-medium hover:bg-red-600/30 hover:text-red-300 transition-all border border-gray-700">
+                    <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                    </svg>
+                    Script
+                </button>
+                <button id="clear-filters" class="px-4 py-2 rounded-xl bg-red-900/30 text-red-400 font-medium hover:bg-red-900/50 transition-all border border-red-800">
+                    <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Filter zurücksetzen
+                </button>
+            </div>
+        </div>
+
+        <!-- Add New Item Button -->
+        <div class="text-center mb-8">
+            <button id="add-item-btn" class="px-8 py-4 bg-gradient-to-r from-red-600 to-red-800 text-white font-bold rounded-2xl hover:from-red-700 hover:to-red-900 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-red-900/50">
+                <svg class="w-6 h-6 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Neues Item hinzufügen
+            </button>
+        </div>
+
+        <!-- Todo List -->
+        <div id="todo-container" class="space-y-4">
+            <!-- Empty State -->
+            <div id="empty-state" class="text-center py-16">
+                <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gray-900/50 flex items-center justify-center border border-red-900/30">
+                    <svg class="w-12 h-12 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                </div>
+                <p class="text-xl text-gray-400 mb-2">Keine Items vorhanden</p>
+                <p class="text-gray-600">Füge dein erstes Item hinzu!</p>
+            </div>
+        </div>
+
+        <!-- Price Summary -->
+        <div class="glass-card rounded-2xl p-6 mt-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-300 mb-2">Gesamtpreis</h3>
+                    <p id="total-price" class="text-2xl font-bold text-white">0,00 €</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-300 mb-2">Bereits ausgegeben</h3>
+                    <p id="purchased-price" class="text-2xl font-bold text-red-400">0,00 €</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-300 mb-2">Noch zu kaufen</h3>
+                    <p id="unpurchased-price" class="text-2xl font-bold text-gray-500">0,00 €</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Item Modal -->
+    <div id="add-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="glass-card rounded-2xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-white">Neues Item hinzufügen</h2>
+                <button id="close-modal" class="p-2 hover:bg-red-600/20 rounded-lg transition-all">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <form id="add-todo-form" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-gray-300 font-medium mb-2">Item Name *</label>
+                        <input type="text" id="item-input" placeholder="z.B. Gaming Headset" required
+                            class="w-full px-4 py-3 rounded-xl glass-input text-white placeholder-gray-500">
+                    </div>
+                    <div>
+                        <label class="block text-gray-300 font-medium mb-2">Kategorie *</label>
+                        <select id="category-input" required class="w-full px-4 py-3 rounded-xl glass-input text-white">
+                            <option value="MLO">MLO</option>
+                            <option value="Script">Script</option>
+                            <option value="Other">Sonstiges</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-300 font-medium mb-2">Preis (€) *</label>
+                    <input type="number" id="price-input" placeholder="0.00" step="0.01" min="0" required
+                        class="w-full px-4 py-3 rounded-xl glass-input text-white placeholder-gray-500">
+                </div>
+                
+                <div>
+                    <label class="block text-gray-300 font-medium mb-2">Preview Link</label>
+                    <input type="url" id="preview-input" placeholder="https://..."
+                        class="w-full px-4 py-3 rounded-xl glass-input text-white placeholder-gray-500">
+                </div>
+                
+                <div>
+                    <label class="block text-gray-300 font-medium mb-2">Shop Link</label>
+                    <input type="url" id="shop-input" placeholder="https://..."
+                        class="w-full px-4 py-3 rounded-xl glass-input text-white placeholder-gray-500">
+                </div>
+                
+                <div class="flex gap-4 pt-4">
+                    <button type="submit" class="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-red-800 text-white font-bold rounded-xl hover:from-red-700 hover:to-red-900 transition-all">
+                        Hinzufügen
+                    </button>
+                    <button type="button" id="cancel-modal" class="px-6 py-3 bg-gray-800/50 text-gray-300 font-medium rounded-xl hover:bg-gray-700/50 transition-all">
+                        Abbrechen
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Status Indicator -->
+    <div class="status-indicator">
+        <div class="glass-card rounded-xl p-3 flex items-center space-x-3">
+            <div id="connection-status" class="w-3 h-3 rounded-full bg-red-500 animate-pulse-soft"></div>
+            <div class="text-white text-sm">
+                <div>Status: <span id="status-text">Verbunden</span></div>
+                <div>Latenz: <span id="latency-text">--ms</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-40 flex items-center justify-center">
+        <div class="glass-card rounded-2xl p-8 text-center">
+            <div class="w-12 h-12 border-4 border-gray-700 border-t-red-500 rounded-full animate-spin mx-auto mb-4"></div>
+            <p class="text-white font-medium">Wird geladen...</p>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
