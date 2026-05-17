@@ -65,12 +65,12 @@ export default function Home() {
           animate={{ opacity: 1, x: 0 }}
         >
           <Link 
-            href="/login" 
+            href="/dashboard" 
             className="px-8 py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl text-sm font-bold transition-all border border-white/10 flex items-center gap-2 group relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
             <LayoutDashboard className="w-4 h-4 text-purple-400" />
-            <span>Member Login</span>
+            <span>Go to Dashboard</span>
           </Link>
         </motion.div>
       </nav>
@@ -117,7 +117,7 @@ export default function Home() {
           className="flex flex-col sm:flex-row items-center gap-6"
         >
           <Link
-            href="/login"
+            href="/dashboard"
             className="group relative px-12 py-5 bg-purple-600 text-white rounded-2xl font-black flex items-center transition-all hover:scale-105 hover:bg-purple-500 shadow-[0_20px_50px_rgba(168,85,247,0.3)] active:scale-95"
           >
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -125,7 +125,7 @@ export default function Home() {
             <ArrowRight className="w-5 h-5 ml-3 transition-transform group-hover:translate-x-1" />
           </Link>
           <Link
-            href="/login"
+            href="/dashboard"
             className="px-12 py-5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl font-bold flex items-center transition-all backdrop-blur-md active:scale-95"
           >
             Explore Dashboard
