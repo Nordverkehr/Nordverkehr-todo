@@ -10,6 +10,18 @@ async function getEffectiveUserId() {
   const session = await auth();
   if (session?.user?.id) return session.user.id;
 
+  // Suche nach dem ersten Todo, um die ID des echten Besitzers zu ermitteln
+  const firstTodo = await db.query.todos.findFirst();
+  if (firstTodo?.userId) return firstTodo.userId;
+
+  // Suche nach der ersten Kategorie
+  const firstCat = await db.query.categories.findFirst();
+  if (firstCat?.userId) return firstCat.userId;
+
+  // Suche nach dem ersten existierenden User
+  const firstUser = await db.query.users.findFirst();
+  if (firstUser?.id) return firstUser.id;
+
   const defaultId = "default-admin-id";
   try {
     await db.insert(users).values({

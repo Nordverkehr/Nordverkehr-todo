@@ -9,7 +9,24 @@ import Image from "next/image";
 
 export default async function SettingsPage() {
   const session = await auth();
-  const userId = session?.user?.id || "default-admin-id";
+  let userId = session?.user?.id;
+
+  if (!userId) {
+    const firstTodo = await db.query.todos.findFirst();
+    if (firstTodo?.userId) userId = firstTodo.userId;
+    else {
+      const firstCat = await db.query.categories.findFirst();
+      if (firstCat?.userId) userId = firstCat.userId;
+      else {
+        const firstUser = await db.query.users.findFirst();
+        if (firstUser?.id) userId = firstUser.id;
+      }
+    }
+  }
+
+  if (!userId) {
+    userId = "default-admin-id";
+  }
 
   const user = await db.query.users.findFirst({
     where: eq(users.id, userId),

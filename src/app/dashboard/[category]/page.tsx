@@ -22,7 +22,24 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
   let config = categoryMap[category];
 
   const session = await auth();
-  const userId = session?.user?.id || "default-admin-id";
+  let userId = session?.user?.id;
+
+  if (!userId) {
+    const firstTodo = await db.query.todos.findFirst();
+    if (firstTodo?.userId) userId = firstTodo.userId;
+    else {
+      const firstCat = await db.query.categories.findFirst();
+      if (firstCat?.userId) userId = firstCat.userId;
+      else {
+        const firstUser = await db.query.users.findFirst();
+        if (firstUser?.id) userId = firstUser.id;
+      }
+    }
+  }
+
+  if (!userId) {
+    userId = "default-admin-id";
+  }
 
   if (!config) {
     // Check if it's a dynamic category

@@ -16,25 +16,36 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
-  const userId = session?.user?.id || "default-admin-id";
+  let userId = session?.user?.id;
 
-  let user = await db.query.users.findFirst({
-    where: eq(users.id, userId),
-  });
+  if (!userId) {
+    const firstTodo = await db.query.todos.findFirst();
+    if (firstTodo?.userId) userId = firstTodo.userId;
+    else {
+      const firstCat = await db.query.categories.findFirst();
+      if (firstCat?.userId) userId = firstCat.userId;
+      else {
+        const firstUser = await db.query.users.findFirst();
+        if (firstUser?.id) userId = firstUser.id;
+      }
+    }
+  }
 
-  if (!user && !session?.user?.id) {
+  if (!userId) {
+    userId = "default-admin-id";
     try {
       await db.insert(users).values({
-        id: "default-admin-id",
+        id: userId,
         name: "JannikJBI",
         email: "admin@nordverkehr.de",
         filterLayout: "tabs",
       }).onConflictDoNothing();
-      user = await db.query.users.findFirst({
-        where: eq(users.id, "default-admin-id"),
-      });
     } catch (e) {}
   }
+
+  let user = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+  });
 
   const filterLayout = user?.filterLayout || "tabs";
   const userName = session?.user?.name || user?.name || "JannikJBI";
